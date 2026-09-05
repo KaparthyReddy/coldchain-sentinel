@@ -40,6 +40,12 @@ class ShipmentControllerTest {
 
     private Shipment shipment;
 
+    @MockBean
+    private com.coldchainsentinel.security.JwtUtil jwtUtil;
+
+    @MockBean
+    private com.coldchainsentinel.security.UserDetailsServiceImpl userDetailsService;
+
     @BeforeEach
     void setUp() {
         Product product = new Product("SKU-1", "TestVaccine", -25.0, -15.0, 180);

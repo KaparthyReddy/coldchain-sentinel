@@ -31,6 +31,12 @@ class AuthControllerTest {
     @MockBean
     private AuthService authService;
 
+    @MockBean
+    private com.coldchainsentinel.security.JwtUtil jwtUtil;
+
+    @MockBean
+    private com.coldchainsentinel.security.UserDetailsServiceImpl userDetailsService;
+
     @Test
     void loginReturnsTokenAndRole() throws Exception {
         when(authService.login(any())).thenReturn(new AuthResponse("fake-jwt-token", "alice", Role.PHARMACIST));
