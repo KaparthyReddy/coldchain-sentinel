@@ -1,0 +1,14 @@
+# Activated via SPRING_PROFILES_ACTIVE=docker (set in docker-compose.yml).
+# Values still come from environment variables — this profile mainly
+# documents that these are the ones that matter at container runtime,
+# and gives us a place to override container-specific behavior later
+# (e.g. connection pool sizing) without touching the base config.
+
+spring:
+  jpa:
+    show-sql: false
+
+logging:
+  level:
+    root: INFO
+    com.coldchainsentinel: INFO
