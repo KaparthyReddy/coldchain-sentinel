@@ -36,6 +36,14 @@ public class PaymentController {
      * in SecurityConfig. Authenticity is verified via HMAC signature instead
      * of a bearer token.
      */
+
+    @GetMapping("/subscriptions")
+    public java.util.List<Subscription> mySubscriptions(Authentication authentication) {
+        User user = userRepository.findByUsername(authentication.getName())
+                .orElseThrow(() -> new ValidationException("User not found: " + authentication.getName()));
+        return subscriptionRepository.findByUserId(user.getId());
+    }
+    
     @PostMapping("/webhook")
     public ResponseEntity<String> webhook(@RequestBody String payload,
                                            @RequestHeader("X-Razorpay-Signature") String signature) {
