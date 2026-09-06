@@ -2,7 +2,7 @@
 
 A concurrent, safety-critical Spring Boot API for pharmaceutical cold-chain and inventory monitoring — validates shipment temperature excursions against product safety ranges, tracks inventory and expiry, serves JWT-secured role-based endpoints, and includes a working Razorpay payment/subscription flow — backed by a real PostgreSQL database.
 
-**Live:** https://coldchain-sentinel-xrsk.onrender.com
+**Live:** https://coldchain-sentinel-xrsk.onrender.com/swagger-ui.html
 
 ## What this is
 
