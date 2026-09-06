@@ -1,0 +1,48 @@
+package com.coldchainsentinel.controller;
+
+import com.coldchainsentinel.dto.CheckoutResponse;
+import com.coldchainsentinel.dto.SubscriptionRequest;
+import com.coldchainsentinel.exception.ValidationException;
+import com.coldchainsentinel.model.User;
+import com.coldchainsentinel.repository.UserRepository;
+import com.coldchainsentinel.service.RazorpayService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/v1/payments")
+public class PaymentController {
+
+    private final RazorpayService razorpayService;
+    private final UserRepository userRepository;
+
+    public PaymentController(RazorpayService razorpayService, UserRepository userRepository) {
+        this.razorpayService = razorpayService;
+        this.userRepository = userRepository;
+    }
+
+    @PostMapping("/subscribe")
+    public CheckoutResponse subscribe(@Valid @RequestBody SubscriptionRequest request, Authentication authentication) {
+        User user = userRepository.findByUsername(authentication.getName())
+                .orElseThrow(() -> new ValidationException("User not found: " + authentication.getName()));
+        return razorpayService.createPaymentLink(user, request);
+    }
+
+    /**
+     * Razorpay calls this directly - no JWT is sent, so this path is public
+     * in SecurityConfig. Authenticity is verified via HMAC signature instead
+     * of a bearer token.
+     */
+    @PostMapping("/webhook")
+    public ResponseEntity<String> webhook(@RequestBody String payload,
+                                           @RequestHeader("X-Razorpay-Signature") String signature) {
+        if (!razorpayService.verifySignature(payload, signature)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid signature");
+        }
+        razorpayService.handleWebhookEvent(payload);
+        return ResponseEntity.ok("OK");
+    }
+}
