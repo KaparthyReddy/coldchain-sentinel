@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import com.coldchainsentinel.model.Subscription;
+import com.coldchainsentinel.repository.SubscriptionRepository;
 
 @RestController
 @RequestMapping("/api/v1/payments")
@@ -18,10 +20,13 @@ public class PaymentController {
 
     private final RazorpayService razorpayService;
     private final UserRepository userRepository;
+    private final SubscriptionRepository subscriptionRepository;
 
-    public PaymentController(RazorpayService razorpayService, UserRepository userRepository) {
+    public PaymentController(RazorpayService razorpayService, UserRepository userRepository,
+                              SubscriptionRepository subscriptionRepository) {
         this.razorpayService = razorpayService;
         this.userRepository = userRepository;
+        this.subscriptionRepository = subscriptionRepository;
     }
 
     @PostMapping("/subscribe")
