@@ -76,6 +76,16 @@ Full interactive docs (Swagger UI) available at `/swagger-ui.html` once running.
 
 ColdChain Sentinel includes a working subscription/payment flow using **Razorpay's Payment Links API**, running against Razorpay's test environment — a fully real integration (checkout, webhook delivery, HMAC signature verification, database state updates) with no real money involved.
 
+## Monitoring
+
+Render retains build and runtime logs for each deploy, accessible via the **Logs** tab on the service dashboard. For this project's scope, monitoring consists of:
+
+- Checking `/api/v1/status` periodically to confirm the service is up
+- Reviewing Render's log tail after any deploy to confirm clean startup (no stack traces, successful Flyway migrations, Tomcat bound to the port)
+- Watching for `ERROR`-level log lines in the payment webhook handler specifically, since that's the one path that receives unauthenticated external traffic and depends on signature verification succeeding
+
+A production system handling real payments would add structured logging with a dedicated aggregator (e.g. Better Stack, Datadog) and alerting on failed webhook signature checks — out of scope for this project's free-tier deployment, but the webhook handler already logs enough context (event type, payment link ID) to debug manually if something fails.
+
 ### How it works
 
 1. An authenticated user calls `POST /api/v1/payments/subscribe` with a plan name and amount
