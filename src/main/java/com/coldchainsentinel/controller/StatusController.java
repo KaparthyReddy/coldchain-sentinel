@@ -19,4 +19,16 @@ public class StatusController {
                 "timestamp", Instant.now().toString()
         );
     }
+
+    @GetMapping("/")
+    public Map<String, Object> root() {
+        return Map.of(
+                "service", "coldchain-sentinel",
+                "status", "UP",
+                "docs", "/swagger-ui.html",
+                "health", "/api/v1/status"
+        );
+    }
 }
+
+
