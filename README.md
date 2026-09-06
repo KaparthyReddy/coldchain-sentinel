@@ -1,6 +1,6 @@
 # ColdChain Sentinel
 
-A concurrent, safety-critical Spring Boot API for pharmaceutical cold-chain and inventory monitoring — validates shipment temperature excursions against product safety ranges, tracks inventory and expiry, and serves JWT-secured, role-based endpoints backed by a real PostgreSQL database.
+A concurrent, safety-critical Spring Boot API for pharmaceutical cold-chain and inventory monitoring — validates shipment temperature excursions against product safety ranges, tracks inventory and expiry, serves JWT-secured role-based endpoints, and includes a working Razorpay payment/subscription flow — backed by a real PostgreSQL database.
 
 **Live:** https://coldchain-sentinel-xrsk.onrender.com
 
@@ -27,7 +27,7 @@ It's built to demonstrate production practices, not a CRUD demo: real persistenc
 - **JUnit 5**, Mockito, `@WebMvcTest` slices for controller tests
 - **Docker** (multi-stage build) + **docker-compose** for local orchestration
 - **GitHub Actions** CI (build + test on every push/PR)
-- Deployed on **Render** (web service + managed Postgres)
+- **Razorpay** payment integration (test mode) with webhook signature verification
 
 ## Project structure
 
@@ -71,6 +71,37 @@ coldchain-sentinel/
 | `/api/v1/inventory/near-expiry` | GET | any authenticated user | Items nearing expiry |
 
 Full interactive docs (Swagger UI) available at `/swagger-ui.html` once running.
+
+## Payments (Razorpay, Test Mode)
+
+ColdChain Sentinel includes a working subscription/payment flow using **Razorpay's Payment Links API**, running against Razorpay's test environment — a fully real integration (checkout, webhook delivery, HMAC signature verification, database state updates) with no real money involved.
+
+### How it works
+
+1. An authenticated user calls `POST /api/v1/payments/subscribe` with a plan name and amount
+2. The backend calls Razorpay's API to generate a hosted payment link and returns it to the user
+3. The user completes payment on Razorpay's own checkout page (no custom frontend needed)
+4. Razorpay sends a webhook to `POST /api/v1/payments/webhook` the moment payment succeeds
+5. The webhook handler verifies the request's HMAC-SHA256 signature against a shared secret (`RAZORPAY_WEBHOOK_SECRET`) before trusting it — this is the actual security mechanism, since the endpoint itself must be public (Razorpay can't send a JWT)
+6. On a verified `payment_link.paid` event, the matching `Subscription` record is updated: `status` → `ACTIVE`, `activatedAt` → now
+
+### Endpoints
+
+| Endpoint | Method | Auth | Description |
+|---|---|---|---|
+| `/api/v1/payments/subscribe` | POST | any authenticated user | Creates a Razorpay payment link for a plan |
+| `/api/v1/payments/webhook` | POST | Razorpay signature (public route) | Receives payment confirmation from Razorpay |
+
+### Trying it yourself
+
+Since this runs against Razorpay's test mode, you can complete a full payment with no real card or money:
+
+- **Card:** `5267 3181 8797 5449` (domestic test Mastercard)
+- **Expiry:** any future date
+- **CVV:** any 3 digits
+- **OTP:** any 4–10 digit number (e.g. `123456`)
+
+Razorpay's checkout will show a **"This payment link is created in Test Mode"** banner, and no real transaction ever occurs.
 
 ## Running locally
 
